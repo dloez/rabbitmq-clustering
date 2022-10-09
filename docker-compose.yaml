@@ -1,0 +1,34 @@
+version: "3.9"
+services:
+  rabbit1:
+    image: rabbitmq:management-alpine
+    hostname: rabbit1
+    volumes:
+      - ./volumes/rabbit/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - ./volumes/rabbit/enabled_plugins:/etc/rabbitmq/enabled_plugins
+  rabbit2:
+    image: rabbitmq:management-alpine
+    hostname: rabbit2
+    depends_on:
+      - rabbit1
+    volumes:
+      - ./volumes/rabbit/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - ./volumes/rabbit/cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh
+      - ./volumes/rabbit/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    entrypoint: /usr/local/bin/cluster-entrypoint.sh
+  rabbit3:
+    extends: rabbit2
+    hostname: rabbit3
+  haproxy:
+    image: haproxy:latest
+    volumes:
+      - ./volumes/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - rabbit1
+      - rabbit2
+      - rabbit3
+    ports:
+      - 1883:1883
+      - 1936:1936
+      - 15672:15672
+      - 5672:5672
