@@ -2,12 +2,16 @@ version: "3.9"
 services:
   rabbit1:
     image: rabbitmq:management-alpine
+    networks:
+      - iris
     hostname: rabbit1
     volumes:
       - ./volumes/rabbit/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
       - ./volumes/rabbit/enabled_plugins:/etc/rabbitmq/enabled_plugins
   rabbit2:
     image: rabbitmq:management-alpine
+    networks:
+      - iris
     hostname: rabbit2
     depends_on:
       - rabbit1
@@ -21,6 +25,8 @@ services:
     hostname: rabbit3
   haproxy:
     image: haproxy:latest
+    networks:
+      - iris
     volumes:
       - ./volumes/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     depends_on:
@@ -32,3 +38,6 @@ services:
       - 1936:1936
       - 15672:15672
       - 5672:5672
+networks:
+  iris:
+    external: true
